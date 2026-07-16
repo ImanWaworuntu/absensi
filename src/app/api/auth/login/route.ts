@@ -51,11 +51,8 @@ export async function POST(request: Request) {
       const hariMap = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
       // Use Makassar time to determine day
       const now = new Date();
-      const options = { timeZone: 'Asia/Makassar' };
-      const localDay = parseInt(new Intl.DateTimeFormat('en-US', { ...options, weekday: 'i' }).format(now));
-      // JS getDay() style where 0 is Sunday. Intl 'i' might not be standard. 
-      // Let's just use string mapping.
-      const todayStr = new Intl.DateTimeFormat('id-ID', { ...options, weekday: 'long' }).format(now);
+      const options: Intl.DateTimeFormatOptions = { timeZone: 'Asia/Makassar', weekday: 'long' as const };
+      const todayStr = new Intl.DateTimeFormat('id-ID', options).format(now);
       // todayStr could be "Senin", "Selasa", etc.
       
       const isPiketToday = user.jadwal_piket.some(j => j.hari.toLowerCase() === todayStr.toLowerCase());
