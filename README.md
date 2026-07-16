@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Absensi Guru YAPKI 🏫
 
-## Getting Started
+Aplikasi **Absensi Guru YAPKI** adalah platform presensi digital modern berbasis web yang dirancang khusus untuk mempermudah proses pencatatan kehadiran guru di lingkungan sekolah SMA PERGIS YAPKI Maros. Aplikasi ini mengeliminasi sistem absensi manual (kertas) dan menggantinya dengan sistem yang lebih cepat, transparan, dan terintegrasi dengan verifikasi berbasis lokasi dan foto wajah.
 
-First, run the development server:
+## ✨ Fitur Utama
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Absen Mandiri Berbasis Foto**: Guru dapat melakukan absensi datang dan pulang secara mandiri menggunakan perangkat mereka dengan menangkap foto *selfie* secara *real-time* lewat kamera langsung.
+- **Sistem Absensi Guru Piket**: Guru piket memiliki wewenang khusus dalam sistem untuk tidak hanya mengabsenkan dirinya sendiri, tetapi juga dapat membantu mengabsenkan guru mata pelajaran lain.
+- **Validasi Geolocation (Anti-Kecurangan)**: Sistem akan meminta akses lokasi browser/HP dan mengirimkan data garis lintang & garis bujur (Latitude/Longitude) untuk memastikan kehadiran fisik di sekolah.
+- **Timestamp & Penyimpanan Cloud**: Data dan foto absensi langsung dikirim dan disimpan dengan aman di *cloud* dalam hitungan detik.
+- **Antarmuka Modern (Responsif)**: Desain UI sangat modern, ringan, dan bekerja dengan mulus baik jika diakses dari Smartphone (kamera HP) maupun Laptop/PC sekolah.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Tech Stack (Teknologi yang Digunakan)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Aplikasi ini dirancang dengan standar industri modern terkini untuk performa dan keamanan tinggi:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Framework Utama:** [Next.js (App Router)](https://nextjs.org/) & [React](https://react.dev/) - Menghasilkan halaman web yang super cepat dengan pendekatan Server Actions.
+- **Desain & Styling:** [Tailwind CSS](https://tailwindcss.com/) & [Framer Motion](https://www.framer.com/motion/) - Untuk tata letak yang elegan dan animasi interaktif yang cantik.
+- **Database Induk:** [Supabase](https://supabase.com/) (PostgreSQL) - Sebagai layanan database SQL di awan yang menampung profil pengguna, jadwal, dan riwayat presensi.
+- **ORM (Penghubung Database):** [Prisma](https://www.prisma.io/) - Teknologi untuk mengelola struktur *schema* database dengan lebih aman dan mudah.
+- **Penyimpanan Foto:** Supabase Storage (Bucket) - Semua foto jepretan saat absen langsung tersimpan di *cloud storage*.
+- **Hosting / Deployment:** [Vercel](https://vercel.com/) - Infrastruktur server otomatis untuk menjaga web tetap hidup *online* 24 jam.
 
-## Learn More
+## 🚀 Cara Menjalankan di Komputer Lokal (Development)
 
-To learn more about Next.js, take a look at the following resources:
+Jika Anda ingin memodifikasi kode atau menjalankan versi *offline/localhost*, ikuti langkah ini:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **Clone repositori ini:**
+   ```bash
+   git clone https://github.com/ImanWaworuntu/absensi.git
+   cd absensi
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+2. **Install dependensi:**
+   ```bash
+   npm install
+   ```
 
-## Deploy on Vercel
+3. **Atur Variabel Lingkungan:**
+   Buka (atau buat) file `.env` dan masukkan kredensial Supabase Anda. Anda dapat melihat formatnya di `.env.example`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+4. **Sinkronisasi Database:**
+   ```bash
+   npx prisma db push
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+5. **Jalankan Aplikasi:**
+   ```bash
+   npm run dev
+   ```
+   Buka `http://localhost:3000` di browser Anda.
+
+---
+*Dikembangkan untuk memajukan era digitalisasi administrasi pendidikan di SMA PERGIS YAPKI Maros.*
