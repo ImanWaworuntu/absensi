@@ -29,7 +29,7 @@ enum Hari {
 
 enum StatusKehadiran {
   hadir
-  terlambat
+  sakit
   izin
   alfa
 }
