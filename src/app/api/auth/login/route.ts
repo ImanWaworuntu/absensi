@@ -6,10 +6,13 @@ import { cookies } from "next/headers";
 
 export async function POST(request: Request) {
   try {
-    const { username, password } = await request.json();
+    const { username, password, loginType } = await request.json();
 
     let user = await prisma.user.findUnique({
       where: { username },
+      include: {
+        jadwal_piket: true,
+      }
     });
 
     // AUTO SEED: Jika admin pertama kali login dan belum ada di DB
@@ -22,7 +25,8 @@ export async function POST(request: Request) {
           nama_lengkap: "Administrator",
           password: hash,
           role: "admin",
-        }
+        },
+        include: { jadwal_piket: true }
       });
     }
 
@@ -41,6 +45,28 @@ export async function POST(request: Request) {
         { status: 401 }
       );
     }
+    
+    // Check Piket Schedule
+    if (user.role !== "admin" && loginType === "piket") {
+      const hariMap = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      // Use Makassar time to determine day
+      const now = new Date();
+      const options = { timeZone: 'Asia/Makassar' };
+      const localDay = parseInt(new Intl.DateTimeFormat('en-US', { ...options, weekday: 'i' }).format(now));
+      // JS getDay() style where 0 is Sunday. Intl 'i' might not be standard. 
+      // Let's just use string mapping.
+      const todayStr = new Intl.DateTimeFormat('id-ID', { ...options, weekday: 'long' }).format(now);
+      // todayStr could be "Senin", "Selasa", etc.
+      
+      const isPiketToday = user.jadwal_piket.some(j => j.hari.toLowerCase() === todayStr.toLowerCase());
+      
+      if (!isPiketToday) {
+         return NextResponse.json(
+          { error: `Anda tidak memiliki jadwal piket pada hari ${todayStr}` },
+          { status: 403 }
+        );
+      }
+    }
 
     // Buat JWT
     const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 1 Hari
@@ -48,7 +74,7 @@ export async function POST(request: Request) {
       id: user.id,
       username: user.username,
       nama_lengkap: user.nama_lengkap,
-      role: user.role,
+      role: user.role, // all teachers are guru_dual now
     };
 
     const session = await encrypt(sessionData);
@@ -61,8 +87,17 @@ export async function POST(request: Request) {
       secure: process.env.NODE_ENV === "production",
       path: "/",
     });
+    
+    let redirectUrl = "";
+    if (user.role === "admin") {
+      redirectUrl = "/admin";
+    } else if (loginType === "piket") {
+      redirectUrl = "/guru/piket";
+    } else {
+      redirectUrl = "/guru/mapel";
+    }
 
-    return NextResponse.json({ success: true, role: user.role });
+    return NextResponse.json({ success: true, redirectUrl, role: user.role });
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json(

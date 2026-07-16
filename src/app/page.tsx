@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { LogIn, Lock, User } from "lucide-react";
+import { LogIn, Lock, User, CheckCircle2, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loginType, setLoginType] = useState<"mapel" | "piket">("mapel");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -22,19 +23,17 @@ export default function LoginPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, loginType }),
       });
 
       const data = await res.json();
       if (res.ok) {
         if (data.role === "admin") {
           router.push("/admin");
-        } else if (data.role === "guru_mapel") {
-          router.push("/guru/mapel");
-        } else if (data.role === "guru_piket") {
-          router.push("/guru/piket");
+        } else if (data.redirectUrl) {
+          router.push(data.redirectUrl);
         } else {
-          router.push("/guru");
+          router.push("/guru/mapel");
         }
       } else {
         setError(data.error || "Login gagal.");
@@ -47,19 +46,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-gray-50 overflow-hidden">
-      {/* Decorative Background */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
-        <div className="absolute top-[20%] right-[-10%] w-96 h-96 bg-primary-dark/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-emerald-300/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
-      </div>
-
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-md p-8 m-4 bg-white/80 backdrop-blur-xl border border-white/20 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
+        transition={{ duration: 0.3 }}
+        className="w-full max-w-md p-8 bg-white border border-gray-200 rounded-3xl shadow-xl"
       >
         <div className="flex flex-col items-center mb-8">
           <div className="w-24 h-24 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center p-2 mb-6">
@@ -80,15 +72,11 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-5">
+        <form onSubmit={handleLogin} className="space-y-6">
           {error && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              className="p-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl"
-            >
+            <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl">
               {error}
-            </motion.div>
+            </div>
           )}
 
           <div className="space-y-4">
@@ -100,7 +88,7 @@ export default function LoginPage() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="block w-full pl-11 pr-4 py-3.5 bg-gray-50/50 border border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
+                className="block w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                 placeholder="Username / Email"
                 required
               />
@@ -114,25 +102,51 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="block w-full pl-11 pr-4 py-3.5 bg-gray-50/50 border border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
+                className="block w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                 placeholder="Password"
                 required
               />
             </div>
           </div>
 
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-gray-900">Masuk Sebagai:</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setLoginType("mapel")}
+                className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-sm font-medium transition-colors ${
+                  loginType === "mapel" 
+                  ? "bg-primary/10 border-primary text-primary" 
+                  : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                {loginType === "mapel" && <CheckCircle2 className="w-4 h-4" />}
+                Guru Mapel
+              </button>
+              <button
+                type="button"
+                onClick={() => setLoginType("piket")}
+                className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-sm font-medium transition-colors ${
+                  loginType === "piket" 
+                  ? "bg-primary/10 border-primary text-primary" 
+                  : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                {loginType === "piket" && <CheckCircle2 className="w-4 h-4" />}
+                Guru Piket
+              </button>
+            </div>
+          </div>
+
           <button
             type="submit"
             disabled={isLoading}
-            className="group relative w-full flex justify-center py-3.5 px-4 border border-transparent rounded-2xl text-white font-medium bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden shadow-lg shadow-primary/30"
+            className="w-full flex justify-center py-3.5 px-4 rounded-2xl text-white font-medium bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-primary/30"
           >
-            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:animate-[shimmer_1.5s_infinite]"></div>
-            <span className="relative flex items-center gap-2">
+            <span className="flex items-center gap-2">
               {isLoading ? (
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+                <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
                   <LogIn className="w-5 h-5" />

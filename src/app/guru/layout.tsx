@@ -17,7 +17,10 @@ export default function GuruLayout({
             <Image src="/logo.png" alt="Logo" width={32} height={32} className="object-contain" />
             <span className="text-lg font-bold text-gray-900 tracking-tight">Presensi Guru</span>
           </div>
-          <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 rounded-xl hover:bg-red-50 transition-colors">
+          <button onClick={async () => {
+            await fetch("/api/auth/logout", { method: "POST" });
+            window.location.href = "/";
+          }} className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 rounded-xl hover:bg-red-50 transition-colors">
             <LogOut className="h-4 w-4" />
             <span className="hidden sm:inline">Keluar</span>
           </button>

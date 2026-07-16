@@ -47,6 +47,7 @@ model User {
 
   // Relations
   jadwal_mengajar JadwalMengajar[]
+  jadwal_piket    JadwalPiket[]
   presensi_piket  PresensiPiket[]
   presensi_mapel  PresensiMapel[] @relation("PresensiMapel_Guru")
   dibantu_absen   PresensiMapel[] @relation("PresensiMapel_Piket")
@@ -65,6 +66,16 @@ model JadwalMengajar {
   guru            User     @relation(fields: [guru_id], references: [id], onDelete: Cascade)
 
   @@map("jadwal_mengajar")
+}
+
+model JadwalPiket {
+  id        Int      @id @default(autoincrement())
+  guru_id   String
+  hari      Hari
+
+  guru      User     @relation(fields: [guru_id], references: [id], onDelete: Cascade)
+
+  @@map("jadwal_piket")
 }
 
 model PresensiPiket {

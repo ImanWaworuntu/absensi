@@ -11,9 +11,22 @@ async function verifyAdmin() {
   }
 }
 
-export async function getPresensi() {
+export async function getPresensi(filter: "all" | "week" | "month" = "all") {
   await verifyAdmin();
+  
+  let dateFilter = {};
+  if (filter === "week") {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    dateFilter = { gte: d };
+  } else if (filter === "month") {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 1);
+    dateFilter = { gte: d };
+  }
+
   return prisma.presensiMapel.findMany({
+    where: filter !== "all" ? { tanggal: dateFilter } : undefined,
     orderBy: { tanggal: "desc" },
     include: {
       guru: { select: { nama_lengkap: true } },

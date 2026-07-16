@@ -10,11 +10,12 @@ export default function AdminRekapPage() {
   
   const [editMode, setEditMode] = useState<number | null>(null);
   const [newStatus, setNewStatus] = useState("hadir");
+  const [filter, setFilter] = useState<"all" | "week" | "month">("all");
 
-  const loadData = async () => {
+  const loadData = async (f = filter) => {
     setIsLoading(true);
     try {
-      const result = await getPresensi();
+      const result = await getPresensi(f);
       setData(result);
     } catch (e) {
       console.error(e);
@@ -26,6 +27,11 @@ export default function AdminRekapPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  const handleFilterChange = (newFilter: "all" | "week" | "month") => {
+    setFilter(newFilter);
+    loadData(newFilter);
+  };
 
   const handleSaveStatus = async (id: number) => {
     try {
@@ -39,8 +45,23 @@ export default function AdminRekapPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Rekap Kehadiran (Mapel)</h1>
+        
+        <div className="flex bg-white rounded-xl border border-gray-200 p-1">
+          <button 
+            onClick={() => handleFilterChange("all")} 
+            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${filter === "all" ? "bg-primary text-white" : "text-gray-600 hover:bg-gray-50"}`}
+          >Semua Waktu</button>
+          <button 
+            onClick={() => handleFilterChange("week")} 
+            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${filter === "week" ? "bg-primary text-white" : "text-gray-600 hover:bg-gray-50"}`}
+          >7 Hari Terakhir</button>
+          <button 
+            onClick={() => handleFilterChange("month")} 
+            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${filter === "month" ? "bg-primary text-white" : "text-gray-600 hover:bg-gray-50"}`}
+          >30 Hari Terakhir</button>
+        </div>
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">

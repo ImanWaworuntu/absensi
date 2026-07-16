@@ -104,38 +104,36 @@ export default function AdminGuruPage() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl">
-            <h2 className="text-xl font-bold mb-4">Tambah Guru Baru</h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl relative">
+            <button onClick={() => setShowModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <h2 className="text-xl font-bold mb-4 text-gray-900">Tambah Guru Baru</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Nama Lengkap</label>
-                <input required type="text" value={formData.nama_lengkap} onChange={e => setFormData({...formData, nama_lengkap: e.target.value})} className="w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary/20 outline-none" />
+                <label className="block text-sm font-medium mb-1 text-gray-700">Nama Lengkap</label>
+                <input required type="text" value={formData.nama_lengkap} onChange={e => setFormData({...formData, nama_lengkap: e.target.value})} className="w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary/20 outline-none text-gray-900" />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Username (untuk login)</label>
-                <input required type="text" value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} className="w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary/20 outline-none" />
+                <label className="block text-sm font-medium mb-1 text-gray-700">Username (untuk login)</label>
+                <input required type="text" value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} className="w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary/20 outline-none text-gray-900" />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
-                <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary/20 outline-none" />
+                <label className="block text-sm font-medium mb-1 text-gray-700">Email</label>
+                <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary/20 outline-none text-gray-900" />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Password</label>
-                <input required type="text" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary/20 outline-none" />
+                <label className="block text-sm font-medium mb-1 text-gray-700">Password</label>
+                <input required type="text" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary/20 outline-none text-gray-900" />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Peran (Role)</label>
-                <select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary/20 outline-none">
-                  <option value="guru_mapel">Guru Mapel</option>
-                  <option value="guru_piket">Guru Piket</option>
-                  <option value="guru_dual">Guru Mapel & Piket</option>
-                </select>
-              </div>
-              <div className="flex justify-end gap-3 pt-4 border-t">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl font-medium">Batal</button>
-                <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-primary text-white rounded-xl font-medium flex items-center gap-2">
-                  {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />} Simpan
+              
+              <div className="flex gap-3 pt-4">
+                <button type="button" onClick={() => setShowModal(false)} className="flex-1 px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200">
+                  Batal
+                </button>
+                <button type="submit" disabled={isSubmitting} className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary rounded-xl hover:bg-primary-dark flex items-center justify-center gap-2">
+                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Simpan Guru"}
                 </button>
               </div>
             </form>

@@ -31,7 +31,7 @@ export async function createGuru(data: any) {
       email: data.email,
       password: hash,
       nama_lengkap: data.nama_lengkap,
-      role: data.role as Role,
+      role: "guru_dual" as Role,
     }
   });
 }
