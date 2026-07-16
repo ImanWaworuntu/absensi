@@ -62,7 +62,7 @@ export default function LoginPage() {
             Presensi Digital
           </h1>
           <p className="text-sm text-gray-500 mt-2 font-medium">
-            Yayasan Pendidikan YAPKI
+            SMA PERGIS YAPKI Maros
           </p>
         </div>
 
