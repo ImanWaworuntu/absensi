@@ -1,14 +1,14 @@
-# Absensi Guru YAPKI 🏫
+# Absensi Guru SMA PERGIS YAPKI Maros 🏫
 
-Aplikasi **Absensi Guru YAPKI** adalah platform presensi digital modern berbasis web yang dirancang khusus untuk mempermudah proses pencatatan kehadiran guru di lingkungan sekolah SMA PERGIS YAPKI Maros. Aplikasi ini mengeliminasi sistem absensi manual (kertas) dan menggantinya dengan sistem yang lebih cepat, transparan, dan terintegrasi dengan verifikasi berbasis lokasi dan foto wajah.
+Aplikasi **Absensi Guru SMA PERGIS YAPKI Maro** adalah platform presensi digital modern berbasis web yang dirancang khusus untuk mempermudah proses pencatatan kehadiran guru di lingkungan sekolah SMA PERGIS YAPKI Maros. Aplikasi ini mengeliminasi sistem absensi manual (kertas) dan menggantinya dengan sistem yang lebih cepat, transparan, dan terintegrasi dengan verifikasi berbasis lokasi dan foto wajah.
 
 ## ✨ Fitur Utama
 
 - **Absen Mandiri Berbasis Foto**: Guru dapat melakukan absensi datang dan pulang secara mandiri menggunakan perangkat mereka dengan menangkap foto *selfie* secara *real-time* lewat kamera langsung.
 - **Sistem Absensi Guru Piket**: Guru piket memiliki wewenang khusus dalam sistem untuk tidak hanya mengabsenkan dirinya sendiri, tetapi juga dapat membantu mengabsenkan guru mata pelajaran lain.
-- **Validasi Geolocation (Anti-Kecurangan)**: Sistem akan meminta akses lokasi browser/HP dan mengirimkan data garis lintang & garis bujur (Latitude/Longitude) untuk memastikan kehadiran fisik di sekolah.
+- **Validasi Geolocation**: Sistem akan meminta akses lokasi browser/HP dan mengirimkan data garis lintang & garis bujur (Latitude/Longitude) untuk memastikan kehadiran fisik di sekolah.
 - **Timestamp & Penyimpanan Cloud**: Data dan foto absensi langsung dikirim dan disimpan dengan aman di *cloud* dalam hitungan detik.
-- **Antarmuka Modern (Responsif)**: Desain UI sangat modern, ringan, dan bekerja dengan mulus baik jika diakses dari Smartphone (kamera HP) maupun Laptop/PC sekolah.
+- **Antarmuka Modern**: Desain UI sangat modern, ringan, dan bekerja dengan mulus baik jika diakses dari Smartphone (kamera HP) maupun Laptop/PC sekolah.
 
 ## 🛠️ Tech Stack (Teknologi yang Digunakan)
 
