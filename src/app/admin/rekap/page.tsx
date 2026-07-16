@@ -61,7 +61,7 @@ export default function AdminRekapPage() {
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Rekap Kehadiran");
-    XLSX.writeFile(workbook, "Rekap_Absensi_YAPKI__to_.xlsx");
+    XLSX.writeFile(workbook, `Rekap_Absensi_YAPKI_${startDate}_to_${endDate}.xlsx`);
   };
 
   return (
@@ -139,7 +139,12 @@ export default function AdminRekapPage() {
                             <option value="alfa">Alfa</option>
                           </select>
                         ) : (
-                          <span className={px-2.5 py-1 rounded-md text-xs font-medium uppercase }>
+                          <span className={`px-2.5 py-1 rounded-md text-xs font-medium uppercase ${
+                            p.status_kehadiran === 'hadir' ? 'bg-emerald-100 text-emerald-700' :
+                            p.status_kehadiran === 'sakit' ? 'bg-amber-100 text-amber-700' :
+                            p.status_kehadiran === 'izin' ? 'bg-blue-100 text-blue-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
                             {p.status_kehadiran}
                           </span>
                         )}
