@@ -3,23 +3,9 @@
 import prisma from "@/lib/db";
 import { supabase } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
-
-// Fungsi bantuan untuk membuat user dummy (guru) jika belum ada
-// karena kita menggunakan login statis untuk sementara
-async function ensureGuruExists(guruId: string, namaLengkap: string) {
-  const existing = await prisma.user.findUnique({ where: { id: guruId } });
-  if (!existing) {
-    await prisma.user.create({
-      data: {
-        id: guruId,
-        username: guruId,
-        email: `${guruId}@yapki.sch.id`,
-        nama_lengkap: namaLengkap,
-        role: "guru_dual", // default untuk testing
-      },
-    });
-  }
-}
+import { getSession } from "@/lib/auth";
+import { getNowWITA, getAvailableSlots, isValidSlotForAttendance } from "@/lib/time";
+import { StatusKehadiran } from "@prisma/client";
 
 // Fungsi untuk upload gambar base64 ke Supabase Storage
 async function uploadBase64Image(base64Data: string, path: string): Promise<string> {
@@ -44,35 +30,63 @@ async function uploadBase64Image(base64Data: string, path: string): Promise<stri
 }
 
 export async function submitPresensiMapel(data: {
-  guruId: string;
-  namaLengkap: string;
   fotoBase64: string;
   latitude: number;
   longitude: number;
   ipAddress: string;
+  jam_ke: number[];
   diabsenkanOlehPiketId?: string;
+  guruTargetId?: string; // Jika absen oleh piket
+  status_kehadiran?: StatusKehadiran;
 }) {
   try {
-    await ensureGuruExists(data.guruId, data.namaLengkap);
+    const session = await getSession();
+    if (!session) throw new Error("Anda belum login.");
 
-    // Jika piket yang absenkan, pastikan akun piket ada
-    if (data.diabsenkanOlehPiketId) {
-      await ensureGuruExists(data.diabsenkanOlehPiketId, "Guru Piket");
+    let guruId = session.id;
+    
+    // Jika diabsenkan oleh piket
+    if (data.diabsenkanOlehPiketId && data.guruTargetId) {
+      if (session.role !== "guru_piket" && session.role !== "admin") {
+        throw new Error("Hanya guru piket atau admin yang bisa mengabsenkan orang lain.");
+      }
+      guruId = data.guruTargetId;
     }
 
-    const fileName = `mapel/${data.guruId}_${Date.now()}.jpg`;
-    const fotoUrl = await uploadBase64Image(data.fotoBase64, fileName);
+    if (!data.jam_ke || data.jam_ke.length === 0) {
+      throw new Error("Pilih setidaknya 1 jam pelajaran.");
+    }
+
+    // Validasi apakah slot valid (H-15 menit dan belum berlalu)
+    for (const jam of data.jam_ke) {
+      if (!isValidSlotForAttendance(jam)) {
+        throw new Error(`Jam ke-${jam} belum tersedia atau sudah berlalu.`);
+      }
+    }
+
+    const fileName = `mapel/${guruId}_${Date.now()}.jpg`;
+    
+    // Jika diabsenkan piket dan statusnya Izin/Sakit/Alpa, foto tidak wajib. Tapi jika absen mandiri, wajib.
+    let fotoUrl = null;
+    if (data.fotoBase64) {
+      fotoUrl = await uploadBase64Image(data.fotoBase64, fileName);
+    } else if (!data.diabsenkanOlehPiketId || data.status_kehadiran === "hadir") {
+      throw new Error("Foto wajib dilampirkan untuk absensi hadir.");
+    }
+
+    const nowWita = getNowWITA();
 
     await prisma.presensiMapel.create({
       data: {
-        guru_id: data.guruId,
-        tanggal: new Date(),
-        jam_absen: new Date(),
+        guru_id: guruId,
+        tanggal: nowWita,
+        jam_absen: nowWita,
+        jam_ke: data.jam_ke,
         foto_url: fotoUrl,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        ip_address: data.ipAddress,
-        status_kehadiran: "hadir",
+        latitude: data.latitude || 0,
+        longitude: data.longitude || 0,
+        ip_address: data.ipAddress || "127.0.0.1",
+        status_kehadiran: data.status_kehadiran || "hadir",
         diabsenkan_oleh_piket_id: data.diabsenkanOlehPiketId || null,
       },
     });
@@ -86,27 +100,39 @@ export async function submitPresensiMapel(data: {
 }
 
 export async function submitPresensiPiket(data: {
-  guruId: string;
-  namaLengkap: string;
   fotoBase64: string;
   latitude: number;
   longitude: number;
   ipAddress: string;
 }) {
   try {
-    await ensureGuruExists(data.guruId, data.namaLengkap);
+    const session = await getSession();
+    if (!session) throw new Error("Anda belum login.");
+    if (session.role !== "guru_piket" && session.role !== "admin") {
+      throw new Error("Hanya guru piket yang dapat melakukan absen ini.");
+    }
 
-    const fileName = `piket/${data.guruId}_${Date.now()}.jpg`;
+    const guruId = session.id;
+
+    const fileName = `piket/${guruId}_${Date.now()}.jpg`;
     const fotoUrl = await uploadBase64Image(data.fotoBase64, fileName);
 
-    // Cek apakah hari ini sudah absen piket
-    const hariIni = new Date();
-    hariIni.setHours(0, 0, 0, 0);
+    const nowWita = getNowWITA();
+
+    // Cek apakah hari ini sudah absen piket (bandingkan tanggal saja, abaikan jam)
+    // Gunakan filter tanggal dengan cara yang benar
+    const startOfDay = new Date(nowWita);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(nowWita);
+    endOfDay.setHours(23, 59, 59, 999);
 
     const existingPiket = await prisma.presensiPiket.findFirst({
       where: {
-        guru_id: data.guruId,
-        tanggal: { gte: hariIni },
+        guru_id: guruId,
+        tanggal: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
       },
     });
 
@@ -115,7 +141,7 @@ export async function submitPresensiPiket(data: {
       await prisma.presensiPiket.update({
         where: { id: existingPiket.id },
         data: {
-          jam_pulang: new Date(),
+          jam_pulang: nowWita,
           foto_pulang_url: fotoUrl,
         },
       });
@@ -125,9 +151,9 @@ export async function submitPresensiPiket(data: {
       // Absen Datang
       await prisma.presensiPiket.create({
         data: {
-          guru_id: data.guruId,
-          tanggal: new Date(),
-          jam_datang: new Date(),
+          guru_id: guruId,
+          tanggal: nowWita,
+          jam_datang: nowWita,
           foto_datang_url: fotoUrl,
           latitude_datang: data.latitude,
           longitude_datang: data.longitude,

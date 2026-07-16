@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useTransition } from "react";
 import { Camera, MapPin, CheckCircle2, Loader2 } from "lucide-react";
 import { submitPresensiMapel } from "@/actions/presensi";
+import { getAvailableSlots } from "@/lib/time";
 
 export default function GuruMapelPage() {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -10,6 +11,8 @@ export default function GuruMapelPage() {
   const [photo, setPhoto] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState("");
+  const [slots, setSlots] = useState<any[]>([]);
+  const [selectedSlots, setSelectedSlots] = useState<number[]>([]);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -30,6 +33,18 @@ export default function GuruMapelPage() {
         }
       );
     }
+
+    // Polling available slots
+    const updateSlots = () => {
+      const allSlots = getAvailableSlots();
+      // "cuma 3 checkbox ( 3 jam mapel kedepan) yang terbuka"
+      // Filter slots that are available or upcoming, and take the first 3
+      const visible = allSlots.filter(s => s.status === "available" || s.status === "upcoming").slice(0, 3);
+      setSlots(visible);
+    };
+
+    updateSlots();
+    const interval = setInterval(updateSlots, 60000); // per menit
 
     // Initialize Camera (Front facing)
     const initCamera = async () => {
@@ -52,6 +67,7 @@ export default function GuruMapelPage() {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach((track) => track.stop());
       }
+      clearInterval(interval);
     };
   }, []);
 
@@ -72,7 +88,10 @@ export default function GuruMapelPage() {
   };
 
   const submitAbsen = () => {
-    if (!photo || !location) return;
+    if (!photo || !location || selectedSlots.length === 0) {
+      setMessage("Pastikan lokasi, foto, dan setidaknya 1 jam pelajaran dipilih.");
+      return;
+    }
     
     startTransition(async () => {
       setMessage("");
@@ -87,12 +106,11 @@ export default function GuruMapelPage() {
       }
 
       const result = await submitPresensiMapel({
-        guruId: "guru-mapel-01", // Hardcode for now
-        namaLengkap: "Budi Santoso, S.Pd",
         fotoBase64: photo,
         latitude: location.lat,
         longitude: location.lng,
         ipAddress,
+        jam_ke: selectedSlots,
       });
 
       if (result.success) {
@@ -133,6 +151,47 @@ export default function GuruMapelPage() {
           </div>
         </div>
 
+        {/* Pemilihan Jam Mengajar */}
+        <div className="mb-6">
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">Pilih Jam Pelajaran:</h3>
+          <div className="space-y-3">
+            {slots.length === 0 ? (
+              <p className="text-sm text-gray-500">Tidak ada jam pelajaran yang tersedia saat ini.</p>
+            ) : (
+              slots.map((slot) => {
+                const isAvailable = slot.status === "available";
+                const isSelected = selectedSlots.includes(slot.id);
+                
+                const toggleSlot = () => {
+                  if (!isAvailable) return;
+                  if (isSelected) {
+                    setSelectedSlots(prev => prev.filter(id => id !== slot.id));
+                  } else {
+                    setSelectedSlots(prev => [...prev, slot.id]);
+                  }
+                };
+
+                return (
+                  <label key={slot.id} onClick={toggleSlot} className={`flex items-center justify-between p-4 border rounded-2xl cursor-pointer transition-all ${isAvailable ? (isSelected ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-primary/50') : 'border-gray-100 bg-gray-50 opacity-60 cursor-not-allowed'}`}>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-5 h-5 rounded border flex items-center justify-center ${isSelected ? 'bg-primary border-primary' : 'border-gray-300'}`}>
+                        {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                      </div>
+                      <div>
+                        <p className={`text-sm font-medium ${isAvailable ? 'text-gray-900' : 'text-gray-500'}`}>{slot.label}</p>
+                        <p className="text-xs text-gray-500">{slot.start} - {slot.end}</p>
+                      </div>
+                    </div>
+                    {!isAvailable && (
+                      <span className="text-xs font-medium px-2 py-1 bg-amber-100 text-amber-700 rounded-lg">Belum Waktunya</span>
+                    )}
+                  </label>
+                );
+              })
+            )}
+          </div>
+        </div>
+
         {/* Camera Area */}
         <div className="relative aspect-[4/3] bg-gray-900 rounded-2xl overflow-hidden mb-6">
           {!photo ? (
@@ -168,10 +227,9 @@ export default function GuruMapelPage() {
           </div>
         </div>
 
-        {/* Submit Button */}
         <button
           onClick={submitAbsen}
-          disabled={!photo || !location || isPending}
+          disabled={!photo || !location || selectedSlots.length === 0 || isPending}
           className="w-full py-4 bg-primary text-white font-medium rounded-2xl flex items-center justify-center gap-2 hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/20"
         >
           {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}

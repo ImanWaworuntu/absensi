@@ -38,6 +38,7 @@ model User {
   id              String   @id @default(cuid()) // UID dari Firebase Authentication
   username        String   @unique @db.VarChar(50)
   email           String   @unique @db.VarChar(100)
+  password        String   @db.VarChar(255)
   nama_lengkap    String   @db.VarChar(150)
   role            Role
   created_at      DateTime @default(now())
@@ -56,12 +57,10 @@ model JadwalMengajar {
   guru_id         String
   mata_pelajaran  String   @db.VarChar(100)
   hari            Hari
-  jam_mulai       DateTime @db.Time
-  jam_selesai     DateTime @db.Time
+  jam_ke          Int[]
   kelas           String   @db.VarChar(20)
 
   guru            User     @relation(fields: [guru_id], references: [id], onDelete: Cascade)
-  presensi_mapel  PresensiMapel[]
 
   @@map("jadwal_mengajar")
 }
@@ -86,18 +85,17 @@ model PresensiPiket {
 model PresensiMapel {
   id                      Int      @id @default(autoincrement())
   guru_id                 String
-  jadwal_id               Int?
   tanggal                 DateTime @db.Date
   jam_absen               DateTime @db.Time
+  jam_ke                  Int[]
   status_kehadiran        StatusKehadiran @default(hadir)
-  foto_url                String   @db.VarChar(255)
+  foto_url                String?  @db.VarChar(255)
   latitude                Decimal  @db.Decimal(10, 8)
   longitude               Decimal  @db.Decimal(11, 8)
   diabsenkan_oleh_piket_id String?
   ip_address              String   @db.VarChar(45)
 
   guru                    User     @relation("PresensiMapel_Guru", fields: [guru_id], references: [id], onDelete: Cascade)
-  jadwal                  JadwalMengajar? @relation(fields: [jadwal_id], references: [id], onDelete: SetNull)
   piket                   User?    @relation("PresensiMapel_Piket", fields: [diabsenkan_oleh_piket_id], references: [id], onDelete: SetNull)
 
   @@map("presensi_mapel")

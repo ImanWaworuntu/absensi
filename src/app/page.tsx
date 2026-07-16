@@ -18,18 +18,32 @@ export default function LoginPage() {
     setIsLoading(true);
     setError("");
 
-    // TODO: Implement actual login logic with API route / Firebase Auth
-    // Simulate API call
-    setTimeout(() => {
-      if (username === "admin" && password === "admin") {
-        router.push("/dashboard");
-      } else if (username === "guru" && password === "guru") {
-        router.push("/guru");
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        if (data.role === "admin") {
+          router.push("/admin");
+        } else if (data.role === "guru_mapel") {
+          router.push("/guru/mapel");
+        } else if (data.role === "guru_piket") {
+          router.push("/guru/piket");
+        } else {
+          router.push("/guru");
+        }
       } else {
-        setError("Kredensial tidak valid. Silakan coba lagi.");
+        setError(data.error || "Login gagal.");
         setIsLoading(false);
       }
-    }, 1000);
+    } catch (err) {
+      setError("Terjadi kesalahan jaringan.");
+      setIsLoading(false);
+    }
   };
 
   return (

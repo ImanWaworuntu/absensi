@@ -3,18 +3,48 @@
 import { useState, useRef, useEffect, useTransition } from "react";
 import { Camera, CheckCircle2, User, Loader2 } from "lucide-react";
 import { submitPresensiPiket, submitPresensiMapel } from "@/actions/presensi";
+import { getAvailableSlots } from "@/lib/time";
+import { getAllGuru } from "@/actions/guru";
+import { StatusKehadiran } from "@prisma/client";
 
 export default function GuruPiketPage() {
   const [mode, setMode] = useState<"self" | "other">("self");
+  const [gurus, setGurus] = useState<{id: string; nama_lengkap: string}[]>([]);
   const [selectedGuru, setSelectedGuru] = useState("");
+  const [statusKehadiran, setStatusKehadiran] = useState<StatusKehadiran>("hadir");
   const [photo, setPhoto] = useState<string | null>(null);
+  
+  const [slots, setSlots] = useState<any[]>([]);
+  const [selectedSlots, setSelectedSlots] = useState<number[]>([]);
+  
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    // Ambil daftar guru
+    getAllGuru().then(setGurus);
+
+    const updateSlots = () => {
+      const allSlots = getAvailableSlots();
+      const visible = allSlots.filter(s => s.status === "available" || s.status === "upcoming").slice(0, 3);
+      setSlots(visible);
+    };
+
+    updateSlots();
+    const interval = setInterval(updateSlots, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
     // Initialize Camera (Environment/Back facing for "other", user/front for "self")
+    if (mode === "other" && statusKehadiran !== "hadir") {
+      // Tidak perlu kamera jika status izin/sakit/alpa
+      return;
+    }
+
     const initCamera = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -35,7 +65,7 @@ export default function GuruPiketPage() {
         stream.getTracks().forEach((track) => track.stop());
       }
     };
-  }, [mode]);
+  }, [mode, statusKehadiran]);
 
   const takePhoto = () => {
     if (videoRef.current && canvasRef.current) {
@@ -52,7 +82,25 @@ export default function GuruPiketPage() {
   };
 
   const submitAbsen = () => {
-    if (!photo) return;
+    if (mode === "self" && !photo) {
+      setMessage("Silakan ambil foto terlebih dahulu.");
+      return;
+    }
+
+    if (mode === "other") {
+      if (!selectedGuru) {
+        setMessage("Pilih guru mapel terlebih dahulu!");
+        return;
+      }
+      if (selectedSlots.length === 0) {
+        setMessage("Pilih setidaknya 1 jam pelajaran.");
+        return;
+      }
+      if (statusKehadiran === "hadir" && !photo) {
+        setMessage("Silakan ambil foto bukti kehadiran guru.");
+        return;
+      }
+    }
     
     startTransition(async () => {
       setMessage("");
@@ -67,31 +115,29 @@ export default function GuruPiketPage() {
 
       if (mode === "self") {
         const result = await submitPresensiPiket({
-          guruId: "guru-piket-01",
-          namaLengkap: "Guru Piket Test",
-          fotoBase64: photo,
+          fotoBase64: photo!,
           latitude: 0,
           longitude: 0,
           ipAddress,
         });
         setMessage(result.message);
       } else {
-        if (!selectedGuru) {
-          setMessage("Pilih guru mapel terlebih dahulu!");
-          return;
-        }
         const result = await submitPresensiMapel({
-          guruId: `guru-mapel-0${selectedGuru}`,
-          namaLengkap: selectedGuru === "1" ? "Budi Santoso, S.Pd" : "Siti Aminah, M.Pd",
-          fotoBase64: photo,
+          fotoBase64: photo || "", // Kosongkan jika izin
           latitude: 0,
           longitude: 0,
           ipAddress,
-          diabsenkanOlehPiketId: "guru-piket-01",
+          diabsenkanOlehPiketId: "dummy", // akan di set oleh backend berdasarkan session
+          guruTargetId: selectedGuru,
+          jam_ke: selectedSlots,
+          status_kehadiran: statusKehadiran,
         });
         setMessage(result.message);
       }
-      setTimeout(() => window.location.href = "/guru", 2000);
+      
+      if (message.includes("Berhasil")) {
+        setTimeout(() => window.location.href = "/guru", 2000);
+      }
     });
   };
 
@@ -125,51 +171,118 @@ export default function GuruPiketPage() {
         )}
 
         {mode === "other" && (
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Pilih Guru Mapel</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <User className="h-5 w-5 text-gray-400" />
+          <div className="space-y-6 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Pilih Guru Mapel</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <User className="h-5 w-5 text-gray-400" />
+                </div>
+                <select
+                  value={selectedGuru}
+                  onChange={(e) => setSelectedGuru(e.target.value)}
+                  className="block w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                >
+                  <option value="">-- Pilih Guru --</option>
+                  {gurus.map(g => (
+                    <option key={g.id} value={g.id}>{g.nama_lengkap}</option>
+                  ))}
+                </select>
               </div>
-              <select
-                value={selectedGuru}
-                onChange={(e) => setSelectedGuru(e.target.value)}
-                className="block w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-              >
-                <option value="">-- Pilih Guru --</option>
-                <option value="1">Budi Santoso, S.Pd</option>
-                <option value="2">Siti Aminah, M.Pd</option>
-              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Pilih Jam Pelajaran</label>
+              <div className="space-y-3">
+                {slots.length === 0 ? (
+                  <p className="text-sm text-gray-500">Tidak ada jam pelajaran yang tersedia saat ini.</p>
+                ) : (
+                  slots.map((slot) => {
+                    const isAvailable = slot.status === "available";
+                    const isSelected = selectedSlots.includes(slot.id);
+                    
+                    const toggleSlot = () => {
+                      if (!isAvailable) return;
+                      if (isSelected) {
+                        setSelectedSlots(prev => prev.filter(id => id !== slot.id));
+                      } else {
+                        setSelectedSlots(prev => [...prev, slot.id]);
+                      }
+                    };
+
+                    return (
+                      <label key={slot.id} onClick={toggleSlot} className={`flex items-center justify-between p-4 border rounded-2xl cursor-pointer transition-all ${isAvailable ? (isSelected ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-primary/50') : 'border-gray-100 bg-gray-50 opacity-60 cursor-not-allowed'}`}>
+                        <div className="flex items-center gap-3">
+                          <div className={`w-5 h-5 rounded border flex items-center justify-center ${isSelected ? 'bg-primary border-primary' : 'border-gray-300'}`}>
+                            {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                          </div>
+                          <div>
+                            <p className={`text-sm font-medium ${isAvailable ? 'text-gray-900' : 'text-gray-500'}`}>{slot.label}</p>
+                            <p className="text-xs text-gray-500">{slot.start} - {slot.end}</p>
+                          </div>
+                        </div>
+                        {!isAvailable && (
+                          <span className="text-xs font-medium px-2 py-1 bg-amber-100 text-amber-700 rounded-lg">Belum Waktunya</span>
+                        )}
+                      </label>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Keterangan Kehadiran</label>
+              <div className="flex gap-2">
+                {(["hadir", "sakit", "izin", "alfa"] as const).map(status => (
+                  <button
+                    key={status}
+                    onClick={() => {
+                      setStatusKehadiran(status);
+                      if (status !== "hadir") setPhoto(null);
+                    }}
+                    className={`flex-1 py-2 text-sm font-medium rounded-xl border ${statusKehadiran === status ? 'bg-primary text-white border-primary' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+                  >
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
 
-        <div className="relative aspect-[4/3] bg-gray-900 rounded-2xl overflow-hidden mb-6">
-          {!photo ? (
-            <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
-          ) : (
-            <img src={photo} alt="Photo" className="w-full h-full object-cover" />
-          )}
-          <canvas ref={canvasRef} className="hidden" />
+        {(mode === "self" || (mode === "other" && statusKehadiran === "hadir")) && (
+          <div className="relative aspect-[4/3] bg-gray-900 rounded-2xl overflow-hidden mb-6">
+            {!photo ? (
+              <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+            ) : (
+              <img src={photo} alt="Photo" className="w-full h-full object-cover" />
+            )}
+            <canvas ref={canvasRef} className="hidden" />
 
-          {!photo && (
             <div className="absolute bottom-6 left-0 right-0 flex justify-center">
-              <button onClick={takePhoto} className="w-16 h-16 bg-white/20 backdrop-blur-md border-4 border-white rounded-full flex items-center justify-center hover:bg-white/40">
-                <Camera className="w-6 h-6 text-white" />
-              </button>
+              {!photo ? (
+                <button onClick={takePhoto} className="w-16 h-16 bg-white/20 backdrop-blur-md border-4 border-white rounded-full flex items-center justify-center hover:bg-white/40">
+                  <Camera className="w-6 h-6 text-white" />
+                </button>
+              ) : (
+                <button onClick={() => setPhoto(null)} className="px-4 py-2 bg-white/80 backdrop-blur-md rounded-full text-sm font-medium hover:bg-white transition-colors">
+                  Ulangi Foto
+                </button>
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         <button
           onClick={submitAbsen}
-          disabled={!photo || (mode === "other" && !selectedGuru) || isPending}
+          disabled={isPending || (mode === "self" && !photo) || (mode === "other" && (!selectedGuru || selectedSlots.length === 0 || (statusKehadiran === "hadir" && !photo)))}
           className={`w-full py-4 text-white font-medium rounded-2xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg ${
             mode === "other" ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20" : "bg-primary hover:bg-primary-dark shadow-primary/20"
           }`}
         >
           {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
-          {isPending ? "Mengirim..." : "Kirim Absen"}
+          {isPending ? "Mengirim..." : (mode === "self" ? "Kirim Absen Piket" : "Kirim Absen Guru")}
         </button>
       </div>
     </div>
