@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Camera, MapPin, CheckCircle2, User } from "lucide-react";
+import { useState, useRef, useEffect, useTransition } from "react";
+import { Camera, CheckCircle2, User, Loader2 } from "lucide-react";
+import { submitPresensiPiket, submitPresensiMapel } from "@/actions/presensi";
 
 export default function GuruPiketPage() {
   const [mode, setMode] = useState<"self" | "other">("self");
   const [selectedGuru, setSelectedGuru] = useState("");
   const [photo, setPhoto] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const [message, setMessage] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -48,6 +51,50 @@ export default function GuruPiketPage() {
     }
   };
 
+  const submitAbsen = () => {
+    if (!photo) return;
+    
+    startTransition(async () => {
+      setMessage("");
+      let ipAddress = "127.0.0.1";
+      try {
+        const res = await fetch("/api/check-ip");
+        const data = await res.json();
+        ipAddress = data.ip || ipAddress;
+      } catch (e) {
+        console.warn("Could not fetch IP", e);
+      }
+
+      if (mode === "self") {
+        const result = await submitPresensiPiket({
+          guruId: "guru-piket-01",
+          namaLengkap: "Guru Piket Test",
+          fotoBase64: photo,
+          latitude: 0,
+          longitude: 0,
+          ipAddress,
+        });
+        setMessage(result.message);
+      } else {
+        if (!selectedGuru) {
+          setMessage("Pilih guru mapel terlebih dahulu!");
+          return;
+        }
+        const result = await submitPresensiMapel({
+          guruId: `guru-mapel-0${selectedGuru}`,
+          namaLengkap: selectedGuru === "1" ? "Budi Santoso, S.Pd" : "Siti Aminah, M.Pd",
+          fotoBase64: photo,
+          latitude: 0,
+          longitude: 0,
+          ipAddress,
+          diabsenkanOlehPiketId: "guru-piket-01",
+        });
+        setMessage(result.message);
+      }
+      setTimeout(() => window.location.href = "/guru", 2000);
+    });
+  };
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Mode Switcher */}
@@ -71,6 +118,12 @@ export default function GuruPiketPage() {
       </div>
 
       <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+        {message && (
+          <div className={`p-4 mb-6 text-sm rounded-xl font-medium ${message.includes("Berhasil") ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+            {message}
+          </div>
+        )}
+
         {mode === "other" && (
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">Pilih Guru Mapel</label>
@@ -109,13 +162,14 @@ export default function GuruPiketPage() {
         </div>
 
         <button
-          disabled={!photo || (mode === "other" && !selectedGuru)}
+          onClick={submitAbsen}
+          disabled={!photo || (mode === "other" && !selectedGuru) || isPending}
           className={`w-full py-4 text-white font-medium rounded-2xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg ${
             mode === "other" ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20" : "bg-primary hover:bg-primary-dark shadow-primary/20"
           }`}
         >
-          <CheckCircle2 className="w-5 h-5" />
-          Kirim Absen
+          {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+          {isPending ? "Mengirim..." : "Kirim Absen"}
         </button>
       </div>
     </div>

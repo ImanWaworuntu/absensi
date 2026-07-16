@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Camera, MapPin, CheckCircle2 } from "lucide-react";
-import { motion } from "framer-motion";
+import { useState, useRef, useEffect, useTransition } from "react";
+import { Camera, MapPin, CheckCircle2, Loader2 } from "lucide-react";
+import { submitPresensiMapel } from "@/actions/presensi";
 
 export default function GuruMapelPage() {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isLocating, setIsLocating] = useState(true);
   const [photo, setPhoto] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const [message, setMessage] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -70,8 +72,36 @@ export default function GuruMapelPage() {
   };
 
   const submitAbsen = () => {
-    // Submit logic here
-    alert("Absen berhasil dikirim!");
+    if (!photo || !location) return;
+    
+    startTransition(async () => {
+      setMessage("");
+      // Get IP
+      let ipAddress = "127.0.0.1";
+      try {
+        const res = await fetch("/api/check-ip");
+        const data = await res.json();
+        ipAddress = data.ip || ipAddress;
+      } catch (e) {
+        console.warn("Could not fetch IP", e);
+      }
+
+      const result = await submitPresensiMapel({
+        guruId: "guru-mapel-01", // Hardcode for now
+        namaLengkap: "Budi Santoso, S.Pd",
+        fotoBase64: photo,
+        latitude: location.lat,
+        longitude: location.lng,
+        ipAddress,
+      });
+
+      if (result.success) {
+        setMessage(result.message);
+        setTimeout(() => window.location.href = "/guru", 2000);
+      } else {
+        setMessage(result.message);
+      }
+    });
   };
 
   return (
@@ -79,6 +109,12 @@ export default function GuruMapelPage() {
       <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
         <h1 className="text-xl font-bold text-gray-900 mb-1">Absensi Guru Mapel</h1>
         <p className="text-sm text-gray-500 mb-6">Jadwal saat ini: Matematika - Kelas XA (07:00 - 08:30)</p>
+
+        {message && (
+          <div className={`p-4 mb-6 text-sm rounded-xl font-medium ${message.includes("Berhasil") ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+            {message}
+          </div>
+        )}
 
         {/* Location Status */}
         <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl mb-6">
@@ -135,11 +171,11 @@ export default function GuruMapelPage() {
         {/* Submit Button */}
         <button
           onClick={submitAbsen}
-          disabled={!photo || !location}
+          disabled={!photo || !location || isPending}
           className="w-full py-4 bg-primary text-white font-medium rounded-2xl flex items-center justify-center gap-2 hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/20"
         >
-          <CheckCircle2 className="w-5 h-5" />
-          Kirim Absen Sekarang
+          {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+          {isPending ? "Mengirim..." : "Kirim Absen Sekarang"}
         </button>
       </div>
     </div>

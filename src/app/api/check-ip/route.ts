@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
   // Dalam lingkungan produksi (Vercel dsb), IP biasanya ada di header x-forwarded-for
-  const ip = request.headers.get("x-forwarded-for") || request.ip || "127.0.0.1";
+  const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
   const gatewayIp = process.env.WIFI_GATEWAY_IP;
 
   if (gatewayIp && ip.includes(gatewayIp)) {
