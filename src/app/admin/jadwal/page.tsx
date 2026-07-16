@@ -91,8 +91,8 @@ export default function AdminJadwalPage() {
       </div>
 
       <div className="flex gap-4 border-b border-gray-200">
-        <button onClick={() => setActiveTab("mapel")} className={"pb-3 text-sm font-medium transition-colors border-b-2 \"}>Jadwal Mapel</button>
-        <button onClick={() => setActiveTab("piket")} className={"pb-3 text-sm font-medium transition-colors border-b-2 \"}>Jadwal Piket</button>
+        <button onClick={() => setActiveTab("mapel")} className={`pb-3 text-sm font-medium transition-colors border-b-2 ${activeTab === "mapel" ? "border-primary text-primary" : "border-transparent text-gray-500 hover:text-gray-700"}`}>Jadwal Mapel</button>
+        <button onClick={() => setActiveTab("piket")} className={`pb-3 text-sm font-medium transition-colors border-b-2 ${activeTab === "piket" ? "border-primary text-primary" : "border-transparent text-gray-500 hover:text-gray-700"}`}>Jadwal Piket</button>
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
