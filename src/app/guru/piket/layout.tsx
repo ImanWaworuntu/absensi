@@ -17,10 +17,7 @@ export default async function PiketLayout({ children }: { children: React.ReactN
   const jadwal = await prisma.jadwalPiket.findFirst({
     where: {
       guru_id: session.id,
-      hari: {
-        equals: todayStr as any,
-        mode: "insensitive"
-      }
+      hari: todayStr as any
     }
   });
 
