@@ -10,7 +10,6 @@ export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [loginType, setLoginType] = useState<"mapel" | "piket">("mapel");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -23,17 +22,15 @@ export default function LoginPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password, loginType }),
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await res.json();
       if (res.ok) {
         if (data.role === "admin") {
           router.push("/admin");
-        } else if (data.redirectUrl) {
-          router.push(data.redirectUrl);
         } else {
-          router.push("/guru/mapel");
+          router.push("/guru");
         }
       } else {
         setError(data.error || "Login gagal.");
@@ -109,35 +106,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="space-y-3">
-            <label className="block text-sm font-semibold text-gray-900">Masuk Sebagai:</label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setLoginType("mapel")}
-                className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-sm font-medium transition-colors ${
-                  loginType === "mapel" 
-                  ? "bg-primary/10 border-primary text-primary" 
-                  : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                {loginType === "mapel" && <CheckCircle2 className="w-4 h-4" />}
-                Guru Mapel
-              </button>
-              <button
-                type="button"
-                onClick={() => setLoginType("piket")}
-                className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-sm font-medium transition-colors ${
-                  loginType === "piket" 
-                  ? "bg-primary/10 border-primary text-primary" 
-                  : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                {loginType === "piket" && <CheckCircle2 className="w-4 h-4" />}
-                Guru Piket
-              </button>
-            </div>
-          </div>
 
           <button
             type="submit"

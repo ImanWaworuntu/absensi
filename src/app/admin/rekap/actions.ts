@@ -15,13 +15,19 @@ export async function getPresensi(filter: "all" | "week" | "month" = "all") {
   await verifyAdmin();
   
   let dateFilter = {};
+  const now = new Date();
+  
   if (filter === "week") {
-    const d = new Date();
-    d.setDate(d.getDate() - 7);
+    // Hari Senin di minggu ini
+    const d = new Date(now);
+    const day = d.getDay() || 7; // Convert Sunday (0) to 7
+    d.setDate(d.getDate() - day + 1); // Get Monday
+    d.setHours(0, 0, 0, 0);
     dateFilter = { gte: d };
   } else if (filter === "month") {
-    const d = new Date();
-    d.setMonth(d.getMonth() - 1);
+    // Tanggal 1 di bulan ini
+    const d = new Date(now.getFullYear(), now.getMonth(), 1);
+    d.setHours(0, 0, 0, 0);
     dateFilter = { gte: d };
   }
 

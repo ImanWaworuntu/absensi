@@ -56,11 +56,11 @@ export default function AdminRekapPage() {
           <button 
             onClick={() => handleFilterChange("week")} 
             className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${filter === "week" ? "bg-primary text-white" : "text-gray-600 hover:bg-gray-50"}`}
-          >7 Hari Terakhir</button>
+          >Minggu Ini</button>
           <button 
             onClick={() => handleFilterChange("month")} 
             className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${filter === "month" ? "bg-primary text-white" : "text-gray-600 hover:bg-gray-50"}`}
-          >30 Hari Terakhir</button>
+          >Bulan Ini</button>
         </div>
       </div>
 

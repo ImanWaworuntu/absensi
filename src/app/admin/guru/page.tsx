@@ -77,27 +77,31 @@ export default function AdminGuruPage() {
               <tr>
                 <th className="px-6 py-4">Nama Lengkap</th>
                 <th className="px-6 py-4">Username</th>
-                <th className="px-6 py-4">Role</th>
+                <th className="px-6 py-4">Email</th>
                 <th className="px-6 py-4 text-right">Aksi</th>
               </tr>
             </thead>
             <tbody>
-              {gurus.map((g) => (
-                <tr key={g.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
-                  <td className="px-6 py-4 font-medium text-gray-900">{g.nama_lengkap}</td>
-                  <td className="px-6 py-4">{g.username}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2.5 py-1 rounded-md text-xs font-medium ${g.role === 'guru_piket' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                      {g.role.replace('_', ' ').toUpperCase()}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button onClick={() => handleDelete(g.id)} className="text-red-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+              {gurus.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                    Belum ada data guru
                   </td>
                 </tr>
-              ))}
+              ) : (
+                gurus.map((guru) => (
+                  <tr key={guru.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 font-medium text-gray-900">{guru.nama_lengkap}</td>
+                    <td className="px-6 py-4">{guru.username}</td>
+                    <td className="px-6 py-4">{guru.email}</td>
+                    <td className="px-6 py-4 text-right">
+                      <button onClick={() => handleDelete(guru.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         )}

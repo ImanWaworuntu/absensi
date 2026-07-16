@@ -6,7 +6,7 @@ import { cookies } from "next/headers";
 
 export async function POST(request: Request) {
   try {
-    const { username, password, loginType } = await request.json();
+    const { username, password } = await request.json();
 
     let user = await prisma.user.findUnique({
       where: { username },
@@ -46,25 +46,6 @@ export async function POST(request: Request) {
       );
     }
     
-    // Check Piket Schedule
-    if (user.role !== "admin" && loginType === "piket") {
-      const hariMap = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-      // Use Makassar time to determine day
-      const now = new Date();
-      const options: Intl.DateTimeFormatOptions = { timeZone: 'Asia/Makassar', weekday: 'long' as const };
-      const todayStr = new Intl.DateTimeFormat('id-ID', options).format(now);
-      // todayStr could be "Senin", "Selasa", etc.
-      
-      const isPiketToday = user.jadwal_piket.some(j => j.hari.toLowerCase() === todayStr.toLowerCase());
-      
-      if (!isPiketToday) {
-         return NextResponse.json(
-          { error: `Anda tidak memiliki jadwal piket pada hari ${todayStr}` },
-          { status: 403 }
-        );
-      }
-    }
-
     // Buat JWT
     const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 1 Hari
     const sessionData = {
@@ -88,10 +69,8 @@ export async function POST(request: Request) {
     let redirectUrl = "";
     if (user.role === "admin") {
       redirectUrl = "/admin";
-    } else if (loginType === "piket") {
-      redirectUrl = "/guru/piket";
     } else {
-      redirectUrl = "/guru/mapel";
+      redirectUrl = "/guru";
     }
 
     return NextResponse.json({ success: true, redirectUrl, role: user.role });
