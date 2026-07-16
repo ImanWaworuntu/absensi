@@ -125,7 +125,7 @@ export default function AdminRekapPage() {
                         {new Date(p.tanggal).toLocaleDateString("id-ID")}
                       </td>
                       <td className="px-6 py-4">{p.guru.nama_lengkap}</td>
-                      <td className="px-6 py-4">{p.jam_ke.join(", "")}</td>
+                      <td className="px-6 py-4">{p.jam_ke.join(", ")}</td>
                       <td className="px-6 py-4">
                         {editMode === p.id ? (
                           <select
