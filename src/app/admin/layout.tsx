@@ -9,7 +9,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-gray-200 flex flex-col hidden md:flex">
         <div className="h-16 flex items-center px-6 border-b border-gray-200">
-          <span className="text-xl font-bold text-gray-900 tracking-tight">Admin YAPKI</span>
+          <span className="text-lg font-bold text-gray-900 tracking-tight leading-tight">Admin SMA PERGIS YAPKI</span>
         </div>
         <nav className="flex-1 p-4 space-y-1">
           <Link href="/admin/guru" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-700 rounded-xl hover:bg-gray-100 transition-colors">
@@ -32,7 +32,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
         <header className="h-16 bg-white border-b border-gray-200 flex items-center px-6 md:hidden">
-          <span className="text-xl font-bold text-gray-900 tracking-tight">Admin YAPKI</span>
+          <span className="text-lg font-bold text-gray-900 tracking-tight leading-tight">Admin SMA PERGIS YAPKI</span>
         </header>
         <div className="p-6 max-w-6xl mx-auto">
           {children}

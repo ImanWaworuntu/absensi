@@ -1,6 +1,6 @@
 # Absensi Guru SMA PERGIS YAPKI Maros 🏫
 
-Aplikasi **Absensi Guru SMA PERGIS YAPKI Maro** adalah platform presensi digital modern berbasis web yang dirancang khusus untuk mempermudah proses pencatatan kehadiran guru di lingkungan sekolah SMA PERGIS YAPKI Maros. Aplikasi ini mengeliminasi sistem absensi manual (kertas) dan menggantinya dengan sistem yang lebih cepat, transparan, dan terintegrasi dengan verifikasi berbasis lokasi dan foto wajah.
+Aplikasi **Absensi Guru SMA PERGIS YAPKI Maros** adalah platform presensi digital modern berbasis web yang dirancang khusus untuk mempermudah proses pencatatan kehadiran guru di lingkungan sekolah SMA PERGIS YAPKI Maros. Aplikasi ini mengeliminasi sistem absensi manual (kertas) dan menggantinya dengan sistem yang lebih cepat, transparan, dan terintegrasi dengan verifikasi berbasis lokasi dan foto wajah.
 
 ## ✨ Fitur Utama
 
