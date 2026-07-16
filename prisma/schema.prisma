@@ -62,6 +62,7 @@ model JadwalMengajar {
   mata_pelajaran  String   @db.VarChar(100)
   hari            Hari
   jam_ke          Int[]
+  jenjang         String   @db.VarChar(10)
   kelas           String   @db.VarChar(20)
 
   guru            User     @relation(fields: [guru_id], references: [id], onDelete: Cascade)

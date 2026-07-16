@@ -22,7 +22,7 @@ export default function GuruLayout({
             window.location.href = "/";
           }} className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 rounded-xl hover:bg-red-50 transition-colors">
             <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline">Keluar</span>
+            <span>Keluar</span>
           </button>
         </div>
       </header>

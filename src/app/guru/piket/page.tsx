@@ -6,6 +6,7 @@ import { submitPresensiPiket, submitPresensiMapel } from "@/actions/presensi";
 import { getAvailableSlots } from "@/lib/time";
 import { getAllGuru } from "@/actions/guru";
 import { StatusKehadiran } from "@prisma/client";
+import Link from "next/link";
 
 export default function GuruPiketPage() {
   const [mode, setMode] = useState<"self" | "other">("self");
@@ -143,6 +144,16 @@ export default function GuruPiketPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Presensi Piket</h1>
+        <Link 
+          href="/guru" 
+          className="text-sm font-medium text-primary bg-primary/10 px-4 py-2 rounded-xl hover:bg-primary/20 transition-colors"
+        >
+          Ganti Peran
+        </Link>
+      </div>
+
       {/* Mode Switcher */}
       <div className="flex bg-gray-100 p-1 rounded-2xl">
         <button

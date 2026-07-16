@@ -18,6 +18,7 @@ export default function AdminJadwalPage() {
   const [formData, setFormData] = useState({
     guru_id: "",
     hari: "Senin",
+    jenjang: "X",
     mata_pelajaran: "",
     kelas: "",
     jam_ke: "" // e.g. "1,2,3"
@@ -59,12 +60,21 @@ export default function AdminJadwalPage() {
     setIsSubmitting(true);
     try {
       if (activeTab === "mapel") {
+        const jamKeArray = formData.jam_ke.split(",").map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+        
+        if (jamKeArray.length > 5) {
+          alert("Maksimal jam pelajaran yang dapat dipilih adalah 5");
+          setIsSubmitting(false);
+          return;
+        }
+
         await createJadwalMengajar({
           guru_id: formData.guru_id,
           hari: formData.hari,
+          jenjang: formData.jenjang,
           mata_pelajaran: formData.mata_pelajaran,
           kelas: formData.kelas,
-          jam_ke: formData.jam_ke.split(",").map(n => parseInt(n.trim())).filter(n => !isNaN(n))
+          jam_ke: jamKeArray
         });
       } else {
         await createJadwalPiket({
@@ -106,6 +116,7 @@ export default function AdminJadwalPage() {
                   <tr>
                     <th className="px-6 py-4">Hari</th>
                     <th className="px-6 py-4">Guru</th>
+                    <th className="px-6 py-4">Jenjang</th>
                     <th className="px-6 py-4">Mata Pelajaran</th>
                     <th className="px-6 py-4">Kelas</th>
                     <th className="px-6 py-4">Jam Ke</th>
@@ -117,6 +128,7 @@ export default function AdminJadwalPage() {
                     <tr key={j.id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="px-6 py-4 font-medium text-gray-900">{j.hari}</td>
                       <td className="px-6 py-4">{j.guru.nama_lengkap}</td>
+                      <td className="px-6 py-4">{j.jenjang}</td>
                       <td className="px-6 py-4">{j.mata_pelajaran}</td>
                       <td className="px-6 py-4">{j.kelas}</td>
                       <td className="px-6 py-4">{j.jam_ke.join(", ")}</td>
@@ -181,6 +193,14 @@ export default function AdminJadwalPage() {
 
               {activeTab === "mapel" && (
                 <>
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-gray-700">Jenjang</label>
+                    <select required value={formData.jenjang} onChange={e => setFormData({...formData, jenjang: e.target.value})} className="w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary/20 outline-none text-gray-900">
+                      <option value="X">Kelas X</option>
+                      <option value="XI">Kelas XI</option>
+                      <option value="XII">Kelas XII</option>
+                    </select>
+                  </div>
                   <div>
                     <label className="block text-sm font-medium mb-1 text-gray-700">Mata Pelajaran</label>
                     <input required type="text" value={formData.mata_pelajaran} onChange={e => setFormData({...formData, mata_pelajaran: e.target.value})} className="w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary/20 outline-none text-gray-900" />

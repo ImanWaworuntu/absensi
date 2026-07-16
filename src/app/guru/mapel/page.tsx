@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useTransition } from "react";
 import { Camera, MapPin, CheckCircle2, Loader2 } from "lucide-react";
 import { submitPresensiMapel } from "@/actions/presensi";
 import { getAvailableSlots } from "@/lib/time";
+import Link from "next/link";
 
 export default function GuruMapelPage() {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -123,7 +124,24 @@ export default function GuruMapelPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto p-4 sm:p-6 pb-24">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+            Presensi Kelas
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Silakan pilih jadwal yang akan diabsen
+          </p>
+        </div>
+        <Link 
+          href="/guru" 
+          className="text-sm font-medium text-primary bg-primary/10 px-4 py-2 rounded-xl hover:bg-primary/20 transition-colors"
+        >
+          Ganti Peran
+        </Link>
+      </div>
+
       <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
         <h1 className="text-xl font-bold text-gray-900 mb-1">Absensi Guru Mapel</h1>
         <p className="text-sm text-gray-500 mb-6">Jadwal saat ini: Matematika - Kelas XA (07:00 - 08:30)</p>

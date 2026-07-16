@@ -11,28 +11,25 @@ async function verifyAdmin() {
   }
 }
 
-export async function getPresensi(filter: "all" | "week" | "month" = "all") {
+export async function getPresensi(startDate?: string, endDate?: string) {
   await verifyAdmin();
   
-  let dateFilter = {};
-  const now = new Date();
+  let dateFilter: any = {};
   
-  if (filter === "week") {
-    // Hari Senin di minggu ini
-    const d = new Date(now);
-    const day = d.getDay() || 7; // Convert Sunday (0) to 7
-    d.setDate(d.getDate() - day + 1); // Get Monday
-    d.setHours(0, 0, 0, 0);
-    dateFilter = { gte: d };
-  } else if (filter === "month") {
-    // Tanggal 1 di bulan ini
-    const d = new Date(now.getFullYear(), now.getMonth(), 1);
-    d.setHours(0, 0, 0, 0);
-    dateFilter = { gte: d };
+  if (startDate) {
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+    dateFilter.gte = start;
+  }
+  
+  if (endDate) {
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+    dateFilter.lte = end;
   }
 
   return prisma.presensiMapel.findMany({
-    where: filter !== "all" ? { tanggal: dateFilter } : undefined,
+    where: Object.keys(dateFilter).length > 0 ? { tanggal: dateFilter } : undefined,
     orderBy: { tanggal: "desc" },
     include: {
       guru: { select: { nama_lengkap: true } },
